@@ -20,20 +20,21 @@ random.seed(datetime.now())
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
+CHOOSING = range(1)
 
+#setting up the different keyboard interactions
 reply_keyboard_interact = [['Food', 'Drink'],
                           ['Fun', 'Stats'],
 		          ['Done']]
 markup_interact = ReplyKeyboardMarkup(reply_keyboard_interact, one_time_keyboard=True)
 
-reply_keyboard_food = [['Croccantini', 'Bistecca']]
+reply_keyboard_food = [['Crunches', 'Steak']]
 markup_food = ReplyKeyboardMarkup(reply_keyboard_food, one_time_keyboard=True)
 
-reply_keyboard_drink = [['Acqua', 'Pepsi']]
+reply_keyboard_drink = [['Water', 'Lemonade']]
 markup_drink = ReplyKeyboardMarkup(reply_keyboard_drink, one_time_keyboard=True)
 
-reply_keyboard_fun = [['Carezze', 'Giretto']]
+reply_keyboard_fun = [['Snuggling', 'Go for a walk']]
 markup_fun = ReplyKeyboardMarkup(reply_keyboard_fun, one_time_keyboard=True)
 
 class perpetualTimer():
@@ -54,214 +55,188 @@ class perpetualTimer():
 	def cancel(self):
 		self.thread.cancel()
 
+#function that decreases vital signs every 24 hours
 def decrease():
-	for file in os.listdir("ettori/"):
+	for file in os.listdir("puppies/"):
 		chat_id = re.split("[-.]",file)[-0]
 		#print (str(chat_id) + "-data.json")
-		r = open('ettori/' + str(chat_id) + "-data.json", "r")
+		r = open('puppies/' + str(chat_id) + "-data.json", "r")
 		load = json.load(r)
-		food = load["ettore"][0]["food"]
-		load["ettore"][0]["food"] = str(float(food) - 2)
-		drink = load["ettore"][0]["drink"]
-		load["ettore"][0]["food"] = str(float(drink) - 2)
-		drink = load["ettore"][0]["fun"]
-		load["ettore"][0]["fun"] = str(float(fun) - 2)
+		food = load["puppy"][0]["food"]
+		load["puppy"][0]["food"] = str(float(food) - 2)
+		drink = load["puppy"][0]["drink"]
+		load["puppy"][0]["food"] = str(float(drink) - 2)
+		drink = load["puppy"][0]["fun"]
+		load["puppy"][0]["fun"] = str(float(fun) - 2)
 		r.close()
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
 		json.dump(load, w)
 		w.close()
-		#if float(load["ettore"][0]["food"]) < 5:
-		#	messages.send_message(chat_id = chat_id, text = "Ettore ha fame.")
-	print ('a')
 	return main
-#Da modificare dopo per creare il file relativo all'Ettore dello User
-def facts_to_str(user_data):
-	facts = list()
-
-	for key, value in user_data.items():
-		facts.append('{} - {}'.format(key, value))
-
-	return "\n".join(facts).join(['\n', '\n'])
 
 def start(update, context):
 	chat_id = update.message.chat.id
-	if os.path.isfile('ettori/' + str(chat_id) + "-data.json"):
-		update.message.reply_text("Ricordati di dare da mangiare, da bere e far divertire Lola almeno una volta al giorno. Ma non esagerare!")
+	if os.path.isfile('puppies/' + str(chat_id) + "-data.json"):
+		update.message.reply_text("Remember to feed and play with your puppy, but don't overdo it!")
 		return main
-		#print('a')
+
 	else:
-		f = open('ettori/' + str(chat_id) + "-data.json", "w+")
+		f = open('puppies/' + str(chat_id) + "-data.json", "w+")
 		data = {}
 		birth = time.time()
-		data['ettore'] = []
-		data['ettore'].append({
+		data['puppy'] = []
+		data['puppy'].append({
     		'food': '5',
 		'drink': '5',
 		'fun': '5',
 		'time': str(birth)
 		})
 		json.dump(data, f)
-		
-		#f = open('ettori/' + str(chat_id) + "-data.json")
-		#load = json.load(f)
-		#print (load["ettore"][0]["food"])
+		#set an url with a pic of a puppy
 		url = 'https://i.ibb.co/Ry59bmC/P-20150623-103022-HDR-removebg-preview.png'
-		update.message.reply_text("Benvenuto in Lola, il tuo pupper viruale. Questa e\' Lola:")
+		update.message.reply_text("Welcome, this is your puppy")
 		update.message.reply_photo(photo = url)
-		update.message.reply_text("Dovrai prenderti cura di lei, altrimenti scappera\' o morira\'. Puoi farlo attraverso il menu\' /Interact. Ricordati di dare da mangiare, da bere e far divertire Lola almeno una volta al giorno. Ma non esagerare!")
+		update.message.reply_text("You'll have to take car of her, you can do it via /interact. Remember to feed her and play with her, but don't overdo it!")
 		return main
 	#return chat_id
 
 def interact(update, context):
 	chat_id = update.message.chat.id
-	r = open('ettori/' + str(chat_id) + "-data.json", "r")
+	r = open('puppies/' + str(chat_id) + "-data.json", "r")
 	load = json.load(r)
-	food = load["ettore"][0]["food"]
-	drink = load["ettore"][0]["drink"]
-	fun = load["ettore"][0]["fun"]
+	food = load["puppy"][0]["food"]
+	drink = load["puppy"][0]["drink"]
+	fun = load["puppy"][0]["fun"]
 	if float(food) < 0 or float(drink) < 0 or float(fun) < 0:
-		update.message.reply_text("Hai dedicato troppe poche attenzioni a Lola! Dall'ultima volta che ti sei connesso Lola e\' morta.")
+		update.message.reply_text("You haven't taken enough care of your puppy, she died since last time!")
 		update.message.reply_photo(photo = 'https://i.ibb.co/0C524Lm/lolded.png')
-		days = (time.time() - float(load["ettore"][0]["time"])) / 86400
-		update.message.reply_text("La tua Lola ha vissuto {} giorni".format(days))
-		os.remove('ettori/' + str(chat_id) + "-data.json")
+		days = (time.time() - float(load["puppy"][0]["time"])) / 86400
+		update.message.reply_text("Your puppy lived for {} days".format(days))
+		os.remove('puppies/' + str(chat_id) + "-data.json")
 		return main
 	elif float(food) > 10 or float(drink) > 10 or float(fun) > 10:
 		#update.message.reply_text("Lola e\' scappata!")
 		#update.message.reply_photo(photo = 'https://serving.photos.photobox.com/60029026823275f6385942e9eb7c45d37613925d52dcec0e059d8408bf993c50b51a4156.jpg')
-		days = (time.time() - float(load["ettore"][0]["time"])) / 86400
-		update.message.reply_text("La tua Lola e\' stata con te {} giorni".format(days))
-		os.remove('ettori/' + str(chat_id) + "-data.json")
+		days = (time.time() - float(load["puppy"][0]["time"])) / 86400
+		update.message.reply_text("Your puppy stayed with you for {} days".format(days))
+		os.remove('puppies/' + str(chat_id) + "-data.json")
 		return main
 	else:
-		update.message.reply_text("Cosa vuoi fare con Lola?",reply_markup=markup_interact)
+		update.message.reply_text("What do you want to do with your puppy?",reply_markup=markup_interact)
 	return CHOOSING
-
+#check 'checks' for fun, thirst and hunger values after you interact with her and gives a response to the user
 def check(value):
 	if value < 0:
-		reply = 'troppo poco, e\' morta!'
+		reply = 'not enough, she died!'
 	if value >= 0 and value <= 3:
-		reply = 'pochissimo, e\' ad un livello critico.'
+		reply = 'very little, she is at a critical level.'
 	if value > 3 and value < 8:
-		reply = 'quanto basta, e\' soddisfatta.'
+		reply = 'enough, she is satisfied.'
 	if value >= 8 and value < 10:
-		reply = 'un po\' troppo, attenzione.'
+		reply = 'A bit too much, watch out.'
 	if value >= 10:
-		reply = 'troppo. Lola non capisce piu\' niente ed e\' scappata! Premi /interact per vedere quanto tempo e\' stata con te.'
+		reply = 'too much she is confused and she is running away! Press /interact to see how much time she stayed with you.'
 	return reply
+#regular_choice manages your decisions and their outcomes
 def regular_choice(update, context):
 	chat_id = update.message.chat.id
-	r = open('ettori/' + str(chat_id) + "-data.json", "r")
+	r = open('puppies/' + str(chat_id) + "-data.json", "r")
 	load = json.load(r)
-	food = load["ettore"][0]["food"]
-	drink = load["ettore"][0]["drink"]
-	fun = load["ettore"][0]["fun"]
+	food = load["puppy"][0]["food"]
+	drink = load["puppy"][0]["drink"]
+	fun = load["puppy"][0]["fun"]
 	text = update.message.text
 	context.user_data['choice'] = text
 	if text == 'Food':
-		update.message.reply_text('Cosa vuoi dare da mangiare a Lola?',reply_markup=markup_food)
+		update.message.reply_text('What do you want to feed her?',reply_markup=markup_food)
 		return CHOOSING
 	if text == 'Drink':
-		update.message.reply_text('Cosa vuoi dare da bere a Lola?',reply_markup=markup_drink)
+		update.message.reply_text('What do you want dive her to drink?',reply_markup=markup_drink)
 		return CHOOSING
 	if text == 'Fun':
-		update.message.reply_text('Cosa vuoi far fare a Lola?',reply_markup=markup_fun)
+		update.message.reply_text('What activities do you want to do with her?',reply_markup=markup_fun)
 		return CHOOSING
 	if text == 'Stats':
-		update.message.reply_text('Ecco le stats di Lola:')
+		update.message.reply_text('Here are her stats:')
 		hunger, thirst, fun_lev = 'A', 'b', 'c'
 		if float(food) > 0 and float(food) < 3:
-			hunger = 'alto'
+			hunger = 'high'
 		if float(food) >= 3 and float(food) < 8:
-			hunger = 'normale'
+			hunger = 'average'
 		if float(food) > 8 and float(food) <= 10:
-			hunger = 'basso'
+			hunger = 'low'
 
 		if float(drink) > 0 and float(drink) < 3:
-			thirst = 'alto'
+			thirst = 'high'
 		if float(drink) >= 3 and float(drink) < 8:
-			thirst = 'normale'
+			thirst = 'average'
 		if float(drink) > 8 and float(drink) < 10:
-			thirst = 'basso'
+			thirst = 'low'
 
 		if float(fun) > 0 and float(fun) < 3:
-			fun_lev = 'basso'
+			fun_lev = 'low'
 		if float(fun) >= 3 and float(fun) < 8:
-			fun_lev = 'normale'
+			fun_lev = 'average'
 		if float(fun) > 8 and float(fun) <= 10:
-			fun_lev = 'alto'
+			fun_lev = 'high'
 
-		update.message.reply_text('Livello fame : {} \n'.format(hunger) + 'Livello sete : {}\n'.format(thirst) + 'Livello divertimento : {}'.format(fun_lev) )
+		update.message.reply_text('Hunger level : {} \n'.format(hunger) + 'Thirst level : {}\n'.format(thirst) + 'Fun level : {}'.format(fun_lev) )
 		return ConversationHandler.END
-	if text == 'Croccantini':
+	if text == 'Crunchies':
 		ran = random.uniform(0,2)
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
-		load["ettore"][0]["food"] = str(ran + float(food))
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
+		load["puppy"][0]["food"] = str(ran + float(food))
 		json.dump(load, w)
 		w.close()
-		reply = check(float(load["ettore"][0]["food"]))
-		update.message.reply_text('Lola ha mangiato {}'.format(reply))
+		reply = check(float(load["puppy"][0]["food"]))
+		update.message.reply_text('She ate {}'.format(reply))
     		return ConversationHandler.END
-	if text == 'Bistecca':
+	if text == 'Steak':
 		ran = random.uniform(0,5)
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
-		load["ettore"][0]["food"] = str(ran + float(food))
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
+		load["puppy"][0]["food"] = str(ran + float(food))
 		json.dump(load, w)
 		w.close()
-		reply = check(float(load["ettore"][0]["food"]))
-		update.message.reply_text('Lola ha mangiato {}'.format(reply))
+		reply = check(float(load["puppy"][0]["food"]))
+		update.message.reply_text('She ate {}'.format(reply))
     		return ConversationHandler.END
-	if text == 'Acqua':
+	if text == 'Water':
 		ran = random.uniform(0,1.5)
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
-		load["ettore"][0]["drink"] = str(ran + float(drink))
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
+		load["puppy"][0]["drink"] = str(ran + float(drink))
 		json.dump(load, w)
 		w.close()
-		reply = check(float(load["ettore"][0]["drink"]))
-		update.message.reply_text('Lola ha bevuto {}'.format(reply))
+		reply = check(float(load["puppy"][0]["drink"]))
+		update.message.reply_text('She drank {}'.format(reply))
     		return ConversationHandler.END
-	if text == 'Pepsi':
+	if text == 'Lemonade':
 		ran = random.uniform(0,3)
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
-		load["ettore"][0]["drink"] = str(ran + float(drink))
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
+		load["puppy"][0]["drink"] = str(ran + float(drink))
 		json.dump(load, w)
 		w.close()
-		reply = check(float(load["ettore"][0]["drink"]))
-		update.message.reply_text('Lola ha bevuto {}'.format(reply))
+		reply = check(float(load["puppy"][0]["drink"]))
+		update.message.reply_text('She drank {}'.format(reply))
     		return ConversationHandler.END
-	if text == 'Carezze':
+	if text == 'Snuggling':
 		ran = random.uniform(0,1.5)
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
-		load["ettore"][0]["fun"] = str(ran + float(fun))
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
+		load["puppy"][0]["fun"] = str(ran + float(fun))
 		json.dump(load, w)
 		w.close()
-		reply = check(float(load["ettore"][0]["fun"]))
-		update.message.reply_text('Lola si e\' divertita {}'.format(reply))
+		reply = check(float(load["puppy"][0]["fun"]))
+		update.message.reply_text('She enjoed herself {}'.format(reply))
     		return ConversationHandler.END
-	if text == 'Giretto':
+	if text == 'Go for a walk':
 		ran = random.uniform(0,3)
-		w = open('ettori/' + str(chat_id) + "-data.json", "w")
-		load["ettore"][0]["fun"] = str(ran + float(fun))
+		w = open('puppies/' + str(chat_id) + "-data.json", "w")
+		load["puppy"][0]["fun"] = str(ran + float(fun))
 		json.dump(load, w)
 		w.close()
-		reply = check(float(load["ettore"][0]["fun"]))
-		update.message.reply_text('Lola si e\' divertita {}'.format(reply))
+		reply = check(float(load["puppy"][0]["fun"]))
+		update.message.reply_text('She enjoed herself {}'.format(reply))
     		return ConversationHandler.END
 	
-
-
-def received_information(update, context):
-    user_data = context.user_data
-    text = update.message.text
-    category = user_data['choice']
-    user_data[category] = text
-    del user_data['choice']
-
-    update.message.reply_text("Hai scelto:{}".format(facts_to_str(user_data)),
-                              reply_markup=markup)
-
-    return CHOOSING
-
 
 def done(update, context):
     return ConversationHandler.END
@@ -277,7 +252,7 @@ def main():
 	# Post version 12 this will no longer be necessary
 	
 
-	updater = Updater("1066381965:AAGpw9getXGb61_QcRmXkXSXdyWdisDT15c", use_context=True)
+	updater = Updater("TOKEN", use_context=True)
 
 	# Get the dispatcher to register handlers
 	dp = updater.dispatcher
@@ -285,29 +260,20 @@ def main():
 	start_handler = CommandHandler('start', start)
 	dp.add_handler(start_handler)
 
-	# Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
+	# Add conversation handler with the states CHOOSING
 	conv_handler = ConversationHandler(
         	entry_points=[CommandHandler('interact', interact)],
 
         	states={
             	CHOOSING: [MessageHandler(Filters.regex('^(Food|Drink|Fun|Stats)$'),
                                       regular_choice),
-                           MessageHandler(Filters.regex('^(Croccantini|Bistecca)$'),
+                           MessageHandler(Filters.regex('^(Crunchies|Steak)$'),
                                       regular_choice),
-                           MessageHandler(Filters.regex('^(Acqua|Pepsi)$'),
+                           MessageHandler(Filters.regex('^(Water|Lemonade)$'),
                                       regular_choice),
-                           MessageHandler(Filters.regex('^(Carezze|Giretto)$'),
+                           MessageHandler(Filters.regex('^(Snuggling|Go for a walk)$'),
                                       regular_choice)
 				],
-
-
-			    TYPING_CHOICE: [MessageHandler(Filters.text,
-				                           regular_choice)
-				            ],
-
-			    TYPING_REPLY: [MessageHandler(Filters.text,
-				                       received_information),
-				           ],
 			},
 
         	fallbacks=[MessageHandler(Filters.regex('^Done$'), done)]
@@ -321,9 +287,6 @@ def main():
 
 	t = perpetualTimer(86400, decrease)
 	t.start()
-
-	#decrease_food()
-	#time.sleep(30.0 - ((time.time() - starttime) % 30.0))
 
 	
 	# Start the Bot
